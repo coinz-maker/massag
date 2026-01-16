@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мое TMA Приложение</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Хедер с темой Telegram -->
+        <header class="header">
+            <h1 id="app-title">Мое Приложение</h1>
+            <div class="user-info" id="user-info">
+                <div class="loader"></div>
+            </div>
+        </header>
+
+        <!-- Основной контент -->
+        <main class="main-content">
+            <section class="section">
+                <h2>Добро пожаловать!</h2>
+                <p id="welcome-text">Загрузка...</p>
+                
+                <div class="card">
+                    <h3>Информация из Telegram</h3>
+                    <div class="info-grid" id="tg-info">
+                        <!-- Сюда загрузим данные из Telegram -->
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Данные из базы (позже)</h3>
+                    <div id="db-data">
+                        <p>Будет подключено к MySQL</p>
+                    </div>
+                    <button id="load-data-btn" class="btn">Загрузить данные</button>
+                </div>
+            </section>
+
+            <!-- Кнопки действий -->
+            <div class="actions">
+                <button id="theme-toggle" class="btn secondary">Сменить тему</button>
+                <button id="expand-btn" class="btn">Расширить</button>
+                <button id="close-btn" class="btn danger">Закрыть</button>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>TMA App v1.0</p>
+        </footer>
+    </div>
+
+    <script src="telegram-webapp.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
