@@ -2,7 +2,97 @@
 document.addEventListener('DOMContentLoaded', function() {
     const app = window.TelegramApp;
     const tg = app.tg;
+    //===========================
+    // Получаем API
+    const api = window.TMA_API;
+    const app = window.TelegramApp;
+    const user = app.getUser();
     
+    // Новая функция для загрузки данных из БД
+    async function loadRealDatabaseData() {
+        if (!user) {
+            console.warn('Пользователь не авторизован');
+            return;
+        }
+        
+        const dbDataEl = document.getElementById('db-data');
+        
+        try {
+            // Показываем загрузку
+            dbDataEl.innerHTML = `
+                <div class="loader" style="margin: 20px auto; width: 40px; height: 40px;"></div>
+                <p style="text-align: center;">Загрузка данных из базы...</p>
+            `;
+            
+            // Загружаем данные пользователя из БД
+            const userData = await api.getUserData(user.id);
+            
+            // Загружаем статистику
+            const stats = await api.getStats();
+            
+            // Загружаем сообщения пользователя
+            const messages = await api.getMessages(user.id);
+            
+            // Отображаем данные
+            dbDataEl.innerHTML = `
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Ваш ID в БД</div>
+                        <div class="info-value">${userData.user?.id || 'Новый пользователь'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Регистрация</div>
+                        <div class="info-value">${userData.user?.created_at ? new Date(userData.user.created_at).toLocaleDateString('ru-RU') : 'Сегодня'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Последний визит</div>
+                        <div class="info-value">${userData.user?.last_visit ? new Date(userData.user.last_visit).toLocaleString('ru-RU') : 'Сейчас'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Всего пользователей</div>
+                        <div class="info-value">${stats.stats?.[0]?.total_users || 0}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Активных за неделю</div>
+                        <div class="info-value">${stats.stats?.[0]?.active_users || 0}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Ваших сообщений</div>
+                        <div class="info-value">${messages.messages?.length || 0}</div>
+                    </div>
+                </div>
+                
+                ${messages.messages?.length > 0 ? `
+                <div style="margin-top: 20px;">
+                    <h4>Последние сообщения:</h4>
+                    <div style="max-height: 200px; overflow-y: auto; margin-top: 10px;">
+                        ${messages.messages.slice(0, 5).map(msg => `
+                            <div style="padding: 8px; margin: 5px 0; background: rgba(0,0,0,0.05); border-radius: 6px;">
+                                <strong>${msg.created_at.split('T')[0]}:</strong> ${msg.text.substring(0, 50)}...
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+            `;
+            
+            app.showAlert('Данные успешно загружены из базы!');
+            
+        } catch (error) {
+            console.error('Ошибка загрузки данных:', error);
+            dbDataEl.innerHTML = `
+                <div style="color: #ff4757; text-align: center; padding: 20px;">
+                    <p>Ошибка загрузки данных</p>
+                    <p style="font-size: 0.9rem;">${error.message}</p>
+                    <p style="font-size: 0.8rem; margin-top: 10px;">Проверьте настройки API и базы данных</p>
+                </div>
+            `;
+        }
+    }
+    
+    // Обновляем обработчик кнопки
+    loadDataBtn.addEventListener('click', loadRealDatabaseData);
+    //===========================
     // Элементы DOM
     const userInfoEl = document.getElementById('user-info');
     const welcomeTextEl = document.getElementById('welcome-text');
@@ -84,11 +174,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="info-grid">
                     <div class="info-item">
                         <div class="info-label">Записей в БД</div>
-                        <div class="info-value">42</div>
+                        <div class="info-value">43</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Последний визит</div>
-                        <div class="info-value">Сегодня, 15:30</div>
+                        <div class="info-value">Сегодня, 15:40</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Статус</div>
@@ -150,4 +240,6 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
         app.showAlert('Приложение успешно загружено!');
     }, 1000);
+
 });
+
