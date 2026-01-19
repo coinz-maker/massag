@@ -78,7 +78,7 @@ module.exports = async (req, res) => {
         if (userRows.length === 0) {
           // Если пользователя нет в БД, создаем запись
           await pool.execute(
-            'INSERT INTO users (telegram_id, first_visit, last_visit) VALUES (?, NOW(), NOW())',
+            'INSERT INTO users1 (telegram_id, first_visit, last_visit) VALUES (?, NOW(), NOW())',
             [userId]
           );
           return res.json({ user: null, message: 'Новый пользователь создан' });
@@ -86,7 +86,7 @@ module.exports = async (req, res) => {
         
         // Обновляем время последнего визита
         await pool.execute(
-          'UPDATE users SET last_visit = NOW() WHERE telegram_id = ?',
+          'UPDATE users1 SET last_visit = NOW() WHERE telegram_id = ?',
           [userId]
         );
         
@@ -94,29 +94,38 @@ module.exports = async (req, res) => {
         
       case 'getStats':
         const [statsRows] = await pool.execute(`
-          SELECT 
-            COUNT(*) as total_users,
-            COUNT(CASE WHEN last_visit > DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 END) as active_users,
-            DATE(created_at) as date,
-            COUNT(*) as daily_registrations
-          FROM users 
-          GROUP BY DATE(created_at)
-          ORDER BY date DESC
-          LIMIT 30
-        `);
+          SELECT COUNT(*) as total_users FROM users ORDER BY join_date DESC LIMIT 30;
+		  `);
         
         return res.json({ stats: statsRows });
         
       case 'getMessages':
         const [messagesRows] = await pool.execute(`
-          SELECT m.*, u.username, u.first_name 
-          FROM messages m
-          LEFT JOIN users u ON m.user_id = u.id
-          WHERE m.user_id = ? OR ? IS NULL
-          ORDER BY m.created_at DESC
-          LIMIT 50
+			SELECT m.bb64url_wallet, u.username, u.first_name 
+			FROM wallets m
+			LEFT JOIN users u ON m.user_id = u.user_id
+			WHERE m.user_id = ? OR ? IS NULL
+			ORDER BY m.create_timestamp DESC
+			LIMIT 1;
         `, [userId || null, userId || null]);
-        
+
+
+          //SELECT m.bb64url_wallet, u.username, u.first_name 
+          //FROM wallets m
+          //LEFT JOIN users u ON m.user_id = u.id
+          //WHERE m.user_id = ? OR ? IS NULL
+          //ORDER BY m.created_at DESC
+          //LIMIT 50
+
+			//SELECT m.bb64url_wallet, u.username, u.first_name 
+			//FROM wallets m
+			//LEFT JOIN users u ON m.user_id = u.user_id
+			//WHERE m.user_id = 435021750 OR m.user_id IS NULL
+			//WHERE m.user_id = ? OR ? IS NULL
+			//ORDER BY m.create_timestamp DESC
+			//LIMIT 50;
+
+
         return res.json({ messages: messagesRows });
         
       default:
