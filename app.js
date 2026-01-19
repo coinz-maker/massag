@@ -1,5 +1,5 @@
 // Основная логика приложения
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     const app = window.TelegramApp;
     const tg = app.tg;
     
@@ -13,10 +13,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeBtn = document.getElementById('close-btn');
     const appTitleEl = document.getElementById('app-title');
     
+    // Получаем API
+    const api = window.TMA_API;
+    const user = app.getUser();
+    
     // Загружаем данные пользователя
     function loadUserData() {
-        const user = app.getUser();
-        
         if (user) {
             // Обновляем приветствие
             const firstName = user.first_name || 'Пользователь';
@@ -70,38 +72,99 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Загрузка данных из базы (заглушка)
-    function loadDatabaseData() {
-        const dbDataEl = document.getElementById('db-data');
-        dbDataEl.innerHTML = `
-            <div class="loader" style="margin: 20px auto;"></div>
-            <p style="text-align: center;">Загрузка данных из MySQL...</p>
-        `;
+    // Новая функция для загрузки данных из БД
+    async function loadRealDatabaseData() {
+        if (!user) {
+            console.warn('Пользователь не авторизован');
+            app.showAlert('Пользователь не авторизован');
+            return;
+        }
         
-        // Симуляция загрузки
-        setTimeout(() => {
+        const dbDataEl = document.getElementById('db-data');
+        
+        try {
+            // Показываем загрузку
+            dbDataEl.innerHTML = `
+                <div class="loader" style="margin: 20px auto; width: 40px; height: 40px;"></div>
+                <p style="text-align: center;">Загрузка данных из базы...</p>
+            `;
+            
+            // Загружаем данные пользователя из БД
+            const userData = await api.getUserData(user.id);
+            
+            // Загружаем статистику
+            const stats = await api.getStats();
+            
+            // Загружаем сообщения пользователя
+            const messages = await api.getMessages(user.id);
+            
+            // Отображаем данные
+            let messagesHtml = '';
+            if (messages.messages?.length > 0) {
+                messagesHtml = `
+                <div style="margin-top: 20px;">
+                    <h4>Последние сообщения:</h4>
+                    <div style="max-height: 200px; overflow-y: auto; margin-top: 10px;">
+                        ${messages.messages.slice(0, 5).map(msg => `
+                            <div style="padding: 8px; margin: 5px 0; background: rgba(0,0,0,0.05); border-radius: 6px;">
+                                <strong>${msg.created_at ? msg.created_at.split('T')[0] : 'Дата неизвестна'}:</strong> 
+                                ${msg.text ? msg.text.substring(0, 50) + '...' : 'Нет текста'}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                `;
+            }
+            
             dbDataEl.innerHTML = `
                 <div class="info-grid">
                     <div class="info-item">
-                        <div class="info-label">Записей в БД</div>
-                        <div class="info-value">42</div>
+                        <div class="info-label">Ваш ID в БД</div>
+                        <div class="info-value">${userData.user?.id || 'Новый пользователь'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Регистрация</div>
+                        <div class="info-value">${userData.user?.created_at ? new Date(userData.user.created_at).toLocaleDateString('ru-RU') : 'Сегодня'}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Последний визит</div>
-                        <div class="info-value">Сегодня, 15:30</div>
+                        <div class="info-value">${userData.user?.last_visit ? new Date(userData.user.last_visit).toLocaleString('ru-RU') : 'Сейчас'}</div>
                     </div>
                     <div class="info-item">
-                        <div class="info-label">Статус</div>
-                        <div class="info-value" style="color: #4cd964;">Активен</div>
+                        <div class="info-label">Всего пользователей</div>
+                        <div class="info-value">${stats.stats?.[0]?.total_users || 0}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Активных за неделю</div>
+                        <div class="info-value">${stats.stats?.[0]?.active_users || 0}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Ваших сообщений</div>
+                        <div class="info-value">${messages.messages?.length || 0}</div>
                     </div>
                 </div>
+                ${messagesHtml}
             `;
-            app.showAlert('Данные успешно загружены!');
-        }, 1500);
+            
+            app.showAlert('Данные успешно загружены из базы!');
+            
+        } catch (error) {
+            console.error('Ошибка загрузки данных:', error);
+            dbDataEl.innerHTML = `
+                <div style="color: #ff4757; text-align: center; padding: 20px;">
+                    <p>Ошибка загрузки данных</p>
+                    <p style="font-size: 0.9rem;">${error.message}</p>
+                    <p style="font-size: 0.8rem; margin-top: 10px;">Проверьте настройки API и базы данных</p>
+                    <button onclick="location.reload()" class="btn" style="margin-top: 10px;">Обновить страницу</button>
+                </div>
+            `;
+        }
     }
     
     // Обработчики событий
-    loadDataBtn.addEventListener('click', loadDatabaseData);
+    loadDataBtn.addEventListener('click', () => {
+        loadRealDatabaseData();
+    });
     
     themeToggleBtn.addEventListener('click', () => {
         // Переключение темы (имитация)
@@ -130,6 +193,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Инициализация
     loadUserData();
+    
+    // Автоматически загружаем данные при запуске (опционально - раскомментируйте если нужно)
+    // setTimeout(() => loadRealDatabaseData(), 1000);
     
     // События Telegram
     tg.onEvent('viewportChanged', (event) => {
