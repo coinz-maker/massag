@@ -110,6 +110,22 @@ module.exports = async (req, res) => {
         `, [userId || null, userId || null]);
 
 
+          //SELECT m.bb64url_wallet, u.username, u.first_name 
+          //FROM wallets m
+          //LEFT JOIN users u ON m.user_id = u.id
+          //WHERE m.user_id = ? OR ? IS NULL
+          //ORDER BY m.created_at DESC
+          //LIMIT 50
+
+			//SELECT m.bb64url_wallet, u.username, u.first_name 
+			//FROM wallets m
+			//LEFT JOIN users u ON m.user_id = u.user_id
+			//WHERE m.user_id = 435021750 OR m.user_id IS NULL
+			//WHERE m.user_id = ? OR ? IS NULL
+			//ORDER BY m.create_timestamp DESC
+			//LIMIT 50;
+
+
         return res.json({ messages: messagesRows });
         
       default:

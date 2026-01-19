@@ -124,24 +124,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                         <div class="info-value">${userData.user?.id || 'Новый пользователь'}</div>
                     </div>
                     <div class="info-item">
-                        <div class="info-label">Регистрация</div>
-                        <div class="info-value">${userData.user?.created_at ? new Date(userData.user.created_at).toLocaleDateString('ru-RU') : 'Сегодня'}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Последний визит</div>
-                        <div class="info-value">${userData.user?.last_visit ? new Date(userData.user.last_visit).toLocaleString('ru-RU') : 'Сейчас'}</div>
-                    </div>
-                    <div class="info-item">
                         <div class="info-label">Всего пользователей</div>
                         <div class="info-value">${stats.stats?.[0]?.total_users || 0}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Активных за неделю</div>
                         <div class="info-value">${stats.stats?.[0]?.active_users || 0}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Ваших сообщений</div>
-                        <div class="info-value">${messages.messages?.length || 0}</div>
                     </div>
                 </div>
                 ${messagesHtml}
