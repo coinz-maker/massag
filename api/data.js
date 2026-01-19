@@ -71,7 +71,7 @@ module.exports = async (req, res) => {
     switch (action) {
       case 'getUserData':
         const [userRows] = await pool.execute(
-          'SELECT * FROM users WHERE telegram_id = ?',
+          'SELECT * FROM users1 WHERE telegram_id = ?',
           [userId]
         );
         

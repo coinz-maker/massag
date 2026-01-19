@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Получаем API
     const api = window.TMA_API;
+	const app = window.TelegramApp;
     const user = app.getUser();
     
     // Загружаем данные пользователя
