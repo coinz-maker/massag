@@ -2,6 +2,10 @@
 document.addEventListener('DOMContentLoaded', async function() {
     const app = window.TelegramApp;
     const tg = app.tg;
+    // Получаем API
+    const api = window.TMA_API;
+    const user = app.getUser();
+
     
     // Элементы DOM
     const userInfoEl = document.getElementById('user-info');
@@ -13,13 +17,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     const closeBtn = document.getElementById('close-btn');
     const appTitleEl = document.getElementById('app-title');
     
-    // Получаем API
-    const api = window.TMA_API;
-	const app = window.TelegramApp;
-    const user = app.getUser();
     
     // Загружаем данные пользователя
     function loadUserData() {
+		const user = app.getUser();
         if (user) {
             // Обновляем приветствие
             const firstName = user.first_name || 'Пользователь';
@@ -72,7 +73,40 @@ document.addEventListener('DOMContentLoaded', async function() {
             userInfoEl.innerHTML = '<span style="color: #666;">Гость</span>';
         }
     }
+
+
+    // Загрузка данных из базы (заглушка)
+    function loadDatabaseData() {
+        const dbDataEl = document.getElementById('db-data-old');
+        dbDataEl.innerHTML = `
+            <div class="loader" style="margin: 20px auto;"></div>
+            <p style="text-align: center;">Загрузка данных из MySQL...</p>
+        `;
+        
+        // Симуляция загрузки
+        setTimeout(() => {
+            dbDataEl.innerHTML = `
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Записей в БД</div>
+                        <div class="info-value">42</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Последний визит</div>
+                        <div class="info-value">Сегодня, 15:30</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Статус</div>
+                        <div class="info-value" style="color: #4cd964;">Активен</div>
+                    </div>
+                </div>
+            `;
+            app.showAlert('Данные успешно загружены!');
+        }, 1500);
+    }
     
+
+
     // Новая функция для загрузки данных из БД
     async function loadRealDatabaseData() {
         if (!user) {
